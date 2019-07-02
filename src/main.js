@@ -18,16 +18,28 @@ let scale = 0.9;
 
 const car = Composites.car(110, 0, 150 * scale, 30 * scale, 30 * scale);
 let accel = 0;
+let boost = 1;
 
+car.bodies[1].friction = 0.9;
+car.bodies[2].friction = 0.9;
 setInterval(function() {
   const carBody = car.bodies[0];
-  const carVel = carBody.velocity;
-  const dx = accel * 2;
+  const carWheel1 = car.bodies[1];
+  const carWheel2 = car.bodies[2];
+  const carVel1 = carWheel1.angularVelocity;
+  const carVel2 = carWheel2.angularVelocity;
+  if (accel) {
+    const dx = accel * 0.05 * boost;
 
-  // console.log(carVel);
-  // console.log(dx);
-  Body.setVelocity(carBody, { y: carVel.y, x: carVel.x + dx });
-}, 10);
+    // Body.setVelocity(carBody, { y: carVel.y, x: carVel.x + dx });
+    //
+    // console.clear();
+    // console.log(carVel, dx);
+    Body.setAngularVelocity(carWheel1, carVel1 + dx);
+    Body.setAngularVelocity(carWheel2, carVel2 + dx);
+  }
+}, 100);
+
 const group1 = Body.nextGroup(true);
 
 const bridge = Composites.stack(160, 290, 10, 1, 0, 0, function(x, y) {
@@ -71,35 +83,17 @@ const stack = Composites.stack(250, 50, 2, 4, 0, 0, function(x, y) {
 });
 
 const stack2 = Composites.stack(450, 50, 8, 7, 0, 0, function(x, y) {
-  return Bodies.circle(x, y, 10, Common.random(20, 40));
+  const circle = Bodies.circle(x, y, 10, Common.random(20, 40));
+  circle.friction = 0.3;
+  return circle;
 });
 
-// const group2 = Body.nextGroup(true);
-// const particleOptions = {
-//   friction: 0.000001,
-//   collisionFilter: { group: group1 },
-//   render: { visible: false }
-// };
-// const constraintOptions = { stiffness: 0.06 };
-// const cloth = Composites.softBody(
-//   100,
-//   150,
-//   10,
-//   8,
-//   1,
-//   1,
-//   false,
-//   8,
-//   particleOptions,
-//   constraintOptions
-// );
-
-// for (let i = 0; i < 20; i++) {
-//   cloth.bodies[i].isStatic = true;
-// }
+// create engine
+const engine = Engine.create(),
+  world = engine.world;
 
 document.body.addEventListener("keydown", function(e) {
-  // console.log(e.key);
+  console.log(e.key);
   switch (e.key) {
     case "ArrowRight":
       accel = 1;
@@ -109,16 +103,34 @@ document.body.addEventListener("keydown", function(e) {
       accel = -1;
       e.preventDefault();
       break;
+    case " ":
+      boost = 10;
+      e.preventDefault();
+      break;
+    case "Shift":
+      engine.timing.timeScale = 0.2;
+      e.preventDefault();
+      break;
   }
 });
 
 document.body.addEventListener("keyup", function(e) {
-  accel = 0;
+  switch (e.key) {
+    case "ArrowRight":
+    case "ArrowLeft":
+      accel = 0;
+      e.preventDefault();
+      break;
+    case " ":
+      boost = 1;
+      e.preventDefault();
+      break;
+    case "Shift":
+      engine.timing.timeScale = 1;
+      e.preventDefault();
+      break;
+  }
 });
-
-// create engine
-const engine = Engine.create(),
-  world = engine.world;
 
 // create renderer
 const render = Render.create({
