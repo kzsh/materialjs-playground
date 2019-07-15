@@ -10383,8 +10383,14 @@
 	const car = Composites.car(110, 0, 150 * scale, 30 * scale, 30 * scale);
 	let accel = 0;
 	let boost = 1;
-	car.bodies[1].friction = 0.9;
-	car.bodies[2].friction = 0.9;
+	let timeScale = 1;
+	let timeScaleChangeRate = 0.05;
+	let slow = false; // create engine
+
+	const engine = Engine.create(),
+	      world = engine.world;
+	car.bodies[1].friction = 0.8;
+	car.bodies[2].friction = 0.8;
 	setInterval(function () {
 	  const carBody = car.bodies[0];
 	  const carWheel1 = car.bodies[1];
@@ -10392,11 +10398,21 @@
 	  const carVel1 = carWheel1.angularVelocity;
 	  const carVel2 = carWheel2.angularVelocity;
 
+	  if (slow) {
+	    if (timeScale > 0.3) {
+	      timeScale -= timeScaleChangeRate;
+	    }
+	  } else {
+	    if (timeScale < 1) {
+	      timeScale += timeScaleChangeRate;
+	    }
+	  }
+
+	  engine.timing.timeScale = timeScale;
+
 	  if (accel) {
 	    const dx = accel * 0.05 * boost; // Body.setVelocity(carBody, { y: carVel.y, x: carVel.x + dx });
 	    //
-	    // console.clear();
-	    // console.log(carVel, dx);
 
 	    Body.setAngularVelocity(carWheel1, carVel1 + dx);
 	    Body.setAngularVelocity(carWheel2, carVel2 + dx);
@@ -10404,7 +10420,7 @@
 	}, 100);
 	const group1 = Body.nextGroup(true);
 	const bridge = Composites.stack(160, 290, 10, 1, 0, 0, function (x, y) {
-	  return Bodies.rectangle(x - 20, y, 53, 20, {
+	  const rect = Bodies.rectangle(x - 20, y, 53, 20, {
 	    collisionFilter: {
 	      group: group1
 	    },
@@ -10415,7 +10431,10 @@
 	      fillStyle: "#575375"
 	    }
 	  });
+	  rect.friction = 1;
+	  return rect;
 	});
+	const softBody1 = Composites.softBody(150, 150, 5, 6, 1, 1, false, 8, {}, {});
 	const bridgeConstraint1 = Constraint.create({
 	  pointA: {
 	    x: 210,
@@ -10450,19 +10469,16 @@
 	  }
 	});
 	const stack = Composites.stack(250, 50, 2, 4, 0, 0, function (x, y) {
-	  return Bodies.rectangle(x, y, 20, 20, Common.random(20, 40));
+	  const rect = Bodies.rectangle(x, y, 20, 20, Common.random(20, 40));
+	  rect.friction = 1;
+	  return rect;
 	});
 	const stack2 = Composites.stack(450, 50, 8, 7, 0, 0, function (x, y) {
 	  const circle = Bodies.circle(x, y, 10, Common.random(20, 40));
 	  circle.friction = 0.3;
 	  return circle;
-	}); // create engine
-
-	const engine = Engine.create(),
-	      world = engine.world;
+	});
 	document.body.addEventListener("keydown", function (e) {
-	  console.log(e.key);
-
 	  switch (e.key) {
 	    case "ArrowRight":
 	      accel = 1;
@@ -10480,7 +10496,7 @@
 	      break;
 
 	    case "Shift":
-	      engine.timing.timeScale = 0.2;
+	      slow = true;
 	      e.preventDefault();
 	      break;
 	  }
@@ -10499,7 +10515,7 @@
 	      break;
 
 	    case "Shift":
-	      engine.timing.timeScale = 1;
+	      slow = false;
 	      e.preventDefault();
 	      break;
 	  }
@@ -10511,8 +10527,8 @@
 	  options: {
 	    width: 1200,
 	    height: 700,
-	    showAngleIndicator: true,
-	    showCollisions: true
+	    showAngleIndicator: false,
+	    showCollisions: false
 	  }
 	});
 	Render.run(render); // create runner
@@ -10522,17 +10538,22 @@
 
 	World.add(world, [// walls
 	Bodies.rectangle(400, 0, 800, 50, {
+	  friction: 1,
 	  isStatic: true
 	}), Bodies.rectangle(400, 600, 800, 50, {
+	  friction: 1,
 	  isStatic: true
 	}), Bodies.rectangle(800, 300, 50, 600, {
+	  friction: 1,
 	  isStatic: true
 	}), Bodies.rectangle(0, 300, 50, 600, {
+	  friction: 1,
 	  isStatic: true
 	})]);
 	World.add(world, [bridge, bridgeConstraint1, bridgeConstraint2]);
 	World.add(world, stack);
-	World.add(world, stack2); // World.add(world, cloth);
+	World.add(world, stack2);
+	World.add(world, softBody1); // World.add(world, cloth);
 
 	World.add(world, car); // scale = 0.8;
 	// World.add(world, Composites.car(350, 300, 150 * scale, 30 * scale, 30 * scale));
