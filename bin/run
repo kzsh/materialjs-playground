@@ -7,8 +7,8 @@ main() {
   processes=()
 
   npm run start &
-  npm run watch &
   processes+=($!)
+  npm run watch &
   processes+=($!)
   wait ${PROCESSES[@]}
 }
