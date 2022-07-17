@@ -1,0 +1,16 @@
+#!/bin/bash
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+main() {
+  local project_dir processes
+  project_dir="$SCRIPT_DIR/.."
+  processes=()
+
+  npm run start &
+  npm run watch &
+  processes+=($!)
+  processes+=($!)
+  wait ${PROCESSES[@]}
+}
+
+main "$@"
