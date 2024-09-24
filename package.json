@@ -16,7 +16,7 @@
     "@rollup/plugin-commonjs": "^22.0.1",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "matter-js": "^0.18.0",
-    "rollup": "^2.77.0",
+    "rollup": "^3.29.5",
     "rollup-plugin-terser": "^7.0.2",
     "serve": "^11.0.2"
   },
